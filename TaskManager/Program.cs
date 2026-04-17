@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 Env.Load();
 var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
-Console.WriteLine("Ovo je string: " + connectionString);
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<TaskDbContext>(options => options.UseNpgsql(connectionString));
