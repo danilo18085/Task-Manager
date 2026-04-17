@@ -1,0 +1,32 @@
+using Models;
+using Microsoft.EntityFrameworkCore;
+using DotNetEnv;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+Env.Load();
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+Console.WriteLine("Ovo je string: " + connectionString);
+
+builder.Services.AddControllers();
+builder.Services.AddDbContext<TaskDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
