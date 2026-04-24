@@ -28,6 +28,17 @@ namespace Controllers
         {
             try
             {
+                var user_check = await Context.Users.Where(p => user.Username == p.Username).FirstOrDefaultAsync();
+                if(user_check != null)
+                    return BadRequest("Vec postoji korisnik sa tim nazivom");
+
+                if(user.Password.Length < 6)
+                    return BadRequest("Duzina sifre mora biti veca od 6");
+                
+                var mail_check = await Context.Users.Where(p => user.Email == p.Email).FirstOrDefaultAsync();
+                if(mail_check != null)
+                    return BadRequest("Navedena email adresa je vec registrovana");
+
                 var hasher = new PasswordHasher<object>();
                 string hashedPassword = hasher.HashPassword(null, user.Password);
 
@@ -38,14 +49,13 @@ namespace Controllers
                 us.Role = "Regular";
                 us.CreatedAt = DateTime.UtcNow;
 
-                //Console.WriteLine(us.Username + " " + us.Email + " " + us.Password + " " + us.CreatedAt);
                 Context.Users.Add(us);
                 await Context.SaveChangesAsync();
                 return Ok($"User je uspesno dodat!");
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                return BadRequest("Problem sa registrovanjem: " + e.Message);
             }
         }
 
@@ -53,20 +63,20 @@ namespace Controllers
         [HttpGet]
         public async Task<ActionResult> Login(string username, string password)
         {
-            try{
-            var hasher = new PasswordHasher<object>();
-            var sifra_vracena = await Context.Users.Where(x => x.Username == username).Select(p => p.Password).FirstOrDefaultAsync();
-            //Console.WriteLine(sifra_vracena);
-            var result = hasher.VerifyHashedPassword(
-                null,
-                sifra_vracena,
-                password
-            );
+            try
+            {
+                var hasher = new PasswordHasher<object>();
+                var sifra_vracena = await Context.Users.Where(x => x.Username == username).Select(p => p.Password).FirstOrDefaultAsync();
+                var result = hasher.VerifyHashedPassword(
+                    null,
+                    sifra_vracena,
+                    password
+                );
 
-            if (result == PasswordVerificationResult.Success)
-                Console.WriteLine("Password je ok");
+                if (result == PasswordVerificationResult.Success)
+                    return Ok();
 
-            return Ok(); 
+                return BadRequest("Password ili username su pogresni"); 
             }
             catch(Exception e)
             {
