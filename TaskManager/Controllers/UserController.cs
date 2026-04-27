@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Models;
 using DTO;
+using Services;
 using Microsoft.AspNetCore.Identity;    
 
 namespace Controllers
@@ -15,73 +16,35 @@ namespace Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
-        public TaskDbContext Context { get; set; }
+        private readonly IUserService _userService;
 
-        public UserController(TaskDbContext context)
+        public UserController(IUserService userService)
         {
-            Context = context;
+            _userService = userService;
         }
 
         [Route("RegisterUser")]
         [HttpPost]
         public async Task<ActionResult> RegisterUser([FromBody] DTOUserRegister user)
         {
-            try
-            {
-                var user_check = await Context.Users.Where(p => user.Username == p.Username).FirstOrDefaultAsync();
-                if(user_check != null)
-                    return BadRequest("Vec postoji korisnik sa tim nazivom");
+            var success = await _userService.RegisterUser(user);
 
-                if(user.Password.Length < 6)
-                    return BadRequest("Duzina sifre mora biti veca od 6");
-                
-                var mail_check = await Context.Users.Where(p => user.Email == p.Email).FirstOrDefaultAsync();
-                if(mail_check != null)
-                    return BadRequest("Navedena email adresa je vec registrovana");
+            if(!success)
+                return BadRequest("Doslo je greske pri registrovanju");
 
-                var hasher = new PasswordHasher<object>();
-                var hashedPassword = hasher.HashPassword(null!, user.Password);
-
-                User us = new User();
-                us.Username = user.Username;
-                us.Email = user.Email;
-                us.Password = hashedPassword;
-                us.Role = "Regular";
-                us.CreatedAt = DateTime.UtcNow;
-
-                Context.Users.Add(us);
-                await Context.SaveChangesAsync();
-                return Ok($"User je uspesno dodat!");
-            }
-            catch (Exception e)
-            {
-                return BadRequest("Problem sa registrovanjem: " + e.Message);
-            }
+            return Ok("Uspesno registrovanje");
         }
 
         [Route("Login")]
         [HttpGet]
         public async Task<ActionResult> Login(string username, string password)
         {
-            try
-            {
-                var hasher = new PasswordHasher<object>();
-                var sifra_vracena = await Context.Users.Where(x => x.Username == username).Select(p => p.Password).FirstOrDefaultAsync();
-                var result = hasher.VerifyHashedPassword(
-                    null!,
-                    sifra_vracena!,
-                    password
-                );
+            var success = await _userService.Login(username, password);
 
-                if (result == PasswordVerificationResult.Success)
-                    return Ok();
+            if(!success)
+                return BadRequest("Doslo je greske pri logovanju");
 
-                return BadRequest("Password ili username su pogresni"); 
-            }
-            catch(Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            return Ok("Login uspesan!");
         }
     }
 }

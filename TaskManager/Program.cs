@@ -14,6 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<TaskDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 
 var app = builder.Build();
