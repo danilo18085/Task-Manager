@@ -1,13 +1,13 @@
-
+using Models;
+using DTO;
+using Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Models;
-using DTO;
-using Microsoft.AspNetCore.Identity;    
+using Microsoft.AspNetCore.Identity;
 
 namespace Controllers
 {
@@ -15,106 +15,69 @@ namespace Controllers
     [Route("[controller]")]
     public class TaskController : ControllerBase
     {
-        public TaskDbContext Context { get; set; }
+        private readonly ITaskService _taskService;
 
-        public TaskController(TaskDbContext context)
+        public TaskController(ITaskService taskService)
         {
-            Context = context;
+            _taskService = taskService;
         }
 
         [Route("CreateTask")]
         [HttpPost]
         public async Task<ActionResult> CreateTask([FromBody] DTOCreateTask task)
         {
-            try
-            {
-                Models.Task ta = new Models.Task();
-                ta.Title = task.Title;
-                ta.Description = task.Description;
-                ta.Priority = task.Priority;
-                ta.CreatedBy = task.CreatedBy;
-                ta.Status = task.Status;
-                ta.DueDate = task.DueDate;
-                ta.CreatedAt = DateTime.UtcNow;
-                ta.UpdatedAt = null;
-                ta.AssignedTo = null;
-                
-                Context.Tasks.Add(ta);
-                await Context.SaveChangesAsync();
-                return Ok($"User je uspesno dodat!");
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            var success = await _taskService.CreateTask(task);
+
+            if(!success)
+                return BadRequest("Doslo je greske pri kreiranju taska!");
+
+            return Ok("Task je uspesno kreiran!");
         }
         
         [Route("UpdateTask")]
         [HttpPut]
         public async Task<ActionResult> UpdateTask([FromBody] DTOUpdateTask task)
         {
-            try
-            {
-                var ta = Context.Tasks.Where(t => t.ID == task.TaskID).FirstOrDefault();
-                if(task.Description != null)
-                    ta.Description = task.Description;
-                if(task.Priority != null)
-                    ta.Priority = task.Priority;
-                if(task.Status != null)
-                    ta.Status = task.Status;
-                if(task.DueDate != null)
-                    ta.DueDate = task.DueDate;
-                if(task.AssignedTo != null)
-                    ta.AssignedTo = task.AssignedTo;
-                
-                ta.UpdatedAt = DateTime.UtcNow;
+            var success = await _taskService.UpdateTask(task);
 
-                Context.Tasks.Update(ta);
-                await Context.SaveChangesAsync();
-                return Ok("Task je uspesno azuriran");
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            if(!success)
+                return BadRequest("Doslo je greske pri azuriranju taska!");
+
+            return Ok("Task je uspesno azuriran!");
         }
 
         [Route("DeleteTask")]
         [HttpDelete]
         public async Task<ActionResult> DeleteTask(int TaskID)
         {
-            try
-            {
-                var ta = Context.Tasks.Where(t => t.ID == TaskID).FirstOrDefault();
+            var success = await _taskService.DeleteTask(TaskID);
 
-                if(ta != null)
+            if(!success)
+                return BadRequest("Doslo je greske pri brisanju taska!");
 
-                Context.Tasks.Remove(ta);
-                await Context.SaveChangesAsync();
-                return Ok("Task je uspesno obrisan");
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            return Ok("Task je uspesno obrisan!");
         }
         [Route("AddComment")]
         [HttpPost]
         public async Task<ActionResult> AddComment([FromBody] Comment comm)
         {
-            Context.Comments.Add(new Comment {TaskID = comm.TaskID, AuthorID = comm.AuthorID, Body = comm.Body, CreatedAt = DateTime.UtcNow});
-            await Context.SaveChangesAsync();
-            return Ok("Uspesno je dodat komentar");
+            var success = await _taskService.AddComment(comm);
+
+            if(!success)
+                return BadRequest("Doslo je greske pri dodavanju komentara!");
+
+            return Ok("Komentar je uspesno dodat!");
         }
 
         [Route("ListComments")]
         [HttpGet]
         public async Task<ActionResult> ListComments(int id_taska)
         {
-            var lista = await Context.Comments.Where(p => id_taska == p.TaskID).ToListAsync();
-            //foreach(var elem in lista)
-                //Console.WriteLine(elem.Body);
+            var lista = await _taskService.ListComments(id_taska);
 
+            if(lista == null)
+                return BadRequest("Doslo je do greske pri vracanju komentara");
+            
             return Ok(lista);
         }
     }

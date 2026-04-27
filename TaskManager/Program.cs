@@ -2,6 +2,7 @@ using Models;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
 using Middleware;
+using Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<TaskDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ITaskService, TaskService>();
 
 var app = builder.Build();
 

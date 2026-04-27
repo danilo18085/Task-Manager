@@ -40,7 +40,7 @@ namespace Controllers
                     return BadRequest("Navedena email adresa je vec registrovana");
 
                 var hasher = new PasswordHasher<object>();
-                string hashedPassword = hasher.HashPassword(null, user.Password);
+                var hashedPassword = hasher.HashPassword(null!, user.Password);
 
                 User us = new User();
                 us.Username = user.Username;
@@ -68,8 +68,8 @@ namespace Controllers
                 var hasher = new PasswordHasher<object>();
                 var sifra_vracena = await Context.Users.Where(x => x.Username == username).Select(p => p.Password).FirstOrDefaultAsync();
                 var result = hasher.VerifyHashedPassword(
-                    null,
-                    sifra_vracena,
+                    null!,
+                    sifra_vracena!,
                     password
                 );
 

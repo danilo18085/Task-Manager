@@ -8,8 +8,8 @@ namespace Models
         public int ID {get; set;}
         public int TaskID {get; set;}
         public int AuthorID {get; set;}
-        public string Body {get; set;}
-        public DateTime CreatedAt {get; set;}
+        public string Body {get; set;} = string.Empty;
+        public DateTime CreatedAt {get; set;} = DateTime.UtcNow;
         
     }
 }
