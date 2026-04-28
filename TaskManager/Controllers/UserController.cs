@@ -17,12 +17,15 @@ namespace Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly JWTService _jwtService;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, JWTService jwtService)
         {
             _userService = userService;
+            _jwtService = jwtService;
         }
 
+        
         [Route("RegisterUser")]
         [HttpPost]
         public async Task<ActionResult> RegisterUser([FromBody] DTOUserRegister user)
@@ -37,14 +40,18 @@ namespace Controllers
 
         [Route("Login")]
         [HttpGet]
-        public async Task<ActionResult> Login(string username, string password)
+        public async Task<ActionResult<DTOLoginResponse>> Login(string username, string password)
         {
             var success = await _userService.Login(username, password);
 
             if(!success)
                 return BadRequest("Doslo je greske pri logovanju");
 
-            return Ok("Login uspesan!");
+            var result = await _jwtService.Authenticate(username, password);
+            if(result == null)
+                return Unauthorized();
+
+            return result;
         }
     }
 }

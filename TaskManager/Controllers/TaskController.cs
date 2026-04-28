@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Controllers
 {
@@ -22,6 +23,7 @@ namespace Controllers
             _taskService = taskService;
         }
 
+        [Authorize]
         [Route("CreateTask")]
         [HttpPost]
         public async Task<ActionResult> CreateTask([FromBody] DTOCreateTask task)
@@ -34,6 +36,7 @@ namespace Controllers
             return Ok("Task je uspesno kreiran!");
         }
         
+        [Authorize]
         [Route("UpdateTask")]
         [HttpPut]
         public async Task<ActionResult> UpdateTask([FromBody] DTOUpdateTask task)
@@ -46,6 +49,7 @@ namespace Controllers
             return Ok("Task je uspesno azuriran!");
         }
 
+        [Authorize]
         [Route("DeleteTask")]
         [HttpDelete]
         public async Task<ActionResult> DeleteTask(int TaskID)
@@ -57,6 +61,8 @@ namespace Controllers
 
             return Ok("Task je uspesno obrisan!");
         }
+
+        [Authorize]
         [Route("AddComment")]
         [HttpPost]
         public async Task<ActionResult> AddComment([FromBody] Comment comm)
@@ -69,6 +75,7 @@ namespace Controllers
             return Ok("Komentar je uspesno dodat!");
         }
 
+        [Authorize]
         [Route("ListComments")]
         [HttpGet]
         public async Task<ActionResult> ListComments(int id_taska)

@@ -25,9 +25,6 @@ namespace Services
             if(user_check != null)
                 return false;
             
-            if(user.Password.Length < 6)
-                return false;
-            
             var mail_check = await _context.Users.Where(p => user.Email == p.Email).FirstOrDefaultAsync();
             if(mail_check != null)
                 return false;
